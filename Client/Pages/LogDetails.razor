@@ -1,0 +1,87 @@
+﻿@page "/logDetails"
+@page "/logDetails/{logItemId:int}"
+
+@inject LoggerService logService
+@inject NavigationManager NavigationManager
+
+<h3>LogDetails</h3>
+<div class="row">
+    <label></label>
+    <button @onclick="Back" class="btn btn-primary">Back</button>
+</div>
+
+<div class="row">
+    <label>Level</label>
+    <div class="detail">
+        @logItem.Level
+    </div>
+</div>
+
+<div class="row">
+    <label>TimeStamp</label>
+    <div class="detail">
+
+        @logItem.TimeStamp
+    </div>
+</div>
+<div class="row">
+    <label>Message</label>
+    <div class="detail">
+
+        @logItem.Message
+    </div>
+</div>
+<div class="row">
+    <label>Exception</label>
+    <div class="detail">
+        @exceptionDetails
+    </div>
+</div>
+
+<div class="row">
+    <label>Properties</label>
+    <div class="detail">
+        @logItem.Properties
+    </div>
+</div>
+<div class="row">
+    <label></label>
+    <button @onclick="Back" class="btn btn-primary">Back</button>
+</div>
+
+@code {
+    [Parameter]
+    public int LogItemId { get; set; }
+
+    private LogItem logItem = new LogItem();
+    private MarkupString exceptionDetails;
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (LogItemId >= 0)
+        {
+            try
+            {
+                logItem = await logService.GetLogItemAsync(LogItemId);
+                if (logItem == null)
+                {
+                    NavigationManager.NavigateTo("/logViewer");
+                }
+                exceptionDetails = new MarkupString(logItem.Exception.EncodeStringAsHTML());
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"{this.GetType().FullName} in OnParametersSetAsync");
+
+                NavigationManager.NavigateTo("/logViewer");
+            }
+        }
+    }
+
+    void Back()
+    {
+        NavigationManager.NavigateTo("/logviewer");
+    }
+}
